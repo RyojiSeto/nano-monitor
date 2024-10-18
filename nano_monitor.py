@@ -1926,15 +1926,20 @@ Options:
       'traffic32.X' or 'traffic64.X' (where X is the ifIndex),
       or alternatively, specify 'traffic32.ifName' or 'traffic64.ifName'
       (where ifName is the interface name like 'Gi0/1').
+      Note: traffic64 is recommended over traffic32 for better performance.
       Note: ifName matching is case-insensitive, and it must match exactly.
       Note: Xbps calculations are based on 1000, not 1024.
             This means 1 Mbps = 1000^2 bits.
       Note: If the OID value is of counter type,
             it is automatically calculated as per second.
+      Note: SNMP version is fixed at 2c.
 
   --thresh <condition> [<condition> ...]
       Set threshold conditions for monitoring.
       Applicable to Ping, HTTP, SNMP, and Traffic monitors.
+      When a threshold breach occurs:
+      - The graph will highlight the breach in red.
+      - A webhook notification will be sent if the --webhook option is enabled.
       For non-traffic monitors:
           Example: --thresh >=300
       For traffic monitors:
@@ -1942,13 +1947,16 @@ Options:
           You can specify one or both directions (in/out).
           Units supported: bps, kbps, mbps, gbps (case-insensitive)
       Note: For traffic monitors, direction and unit are required.
-      Note: If the OID value is of counter type,
+      Note: If the OID value is a counter type,
             the specified threshold values must be per second.
 
   --anomaly <count> <contamination> (default: 256, 0.01)
       Enable anomaly detection using machine learning
       to automatically identify unusual data points.
       Requires scikit-learn.
+      When an anomaly is detected:
+      - The graph will highlight the anomaly in red.
+      - A webhook notification will be sent if the --webhook option is enabled.
 
       <count> specifies the minimum number of data points
       needed for anomaly detection (default is 256).
@@ -1972,7 +1980,7 @@ Options:
 
   --webhook <url> <interval> (default: no webhook, no suppression interval)
       Specify a webhook URL to send notifications
-      when an anomaly or threshold breach is detected.
+      when an anomaly, threshold breach, or failure is detected.
       <interval> is optional and specifies the minimum time (in minutes)
       between successive notifications of the same type.
       If not provided, notifications are sent immediately after each event.
@@ -2002,17 +2010,14 @@ Examples:
   # Ping monitoring with anomaly detection (256 data points, 0.01 contamination)
   192.168.1.1 --anomaly
 
-  # HTTP monitoring with anomaly detection (512 data points, 0.001 contamination)
-  http://example.com --anomaly 512 0.001
-
-  # Ping monitoring with anomaly detection and webhook notifications (30-minute suppression)
-  192.168.1.1 --anomaly --webhook http://example.com/webhook 30
+  # Ping monitoring with threshold detection
+  192.168.1.1 --thresh >=300
 
   # Traffic monitoring with threshold detection
-  192.168.1.1 --snmp public traffic64.1 --thresh in>=1gbps out>=500mbps
+  192.168.1.1 --snmp public traffic64.Gi0/1 --thresh in>=1gbps out>=500mbps
 
-  # SNMP monitoring with threshold and failure notifications
-  192.168.1.1 --snmp public 1.3.6.1.4.1.2021.11.11.0 --thresh <=30 --fail --webhook http://example.com/webhook 15
+  # Ping monitoring with failure and webhook notifications (15-minute suppression interval)
+  192.168.1.1 --fail --webhook http://example.com/webhook 15
     """
     print(help_message)
 
