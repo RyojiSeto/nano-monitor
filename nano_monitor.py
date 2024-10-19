@@ -224,7 +224,7 @@ def check_snmp_command() -> bool:
         return False
     return True
 
-def get_snmp_str_value(target: str, community: str, oid: str, timeout: Optional[float] = None, debug_mode: bool = False) -> Optional[str]:
+def get_snmp_value(target: str, community: str, oid: str, timeout: Optional[float] = None, debug_mode: bool = False) -> Optional[str]:
     """
     Execute the SNMPGET command and parse the returned string value.
     """
@@ -253,7 +253,7 @@ def get_snmp_str_value(target: str, community: str, oid: str, timeout: Optional[
         oid_received = parts[0].strip()
         value_str = parts[1].strip()
 
-        match = re.match(r'^STRING:\s+"?(.+?)"?$', value_str)
+        match = re.match(r'^\w+:\s+"?(.*?)"?$', value_str)
         if match:
             return match.group(1).strip()
     except Exception as e:
@@ -900,7 +900,7 @@ class SnmpMonitor(NetworkMonitor):
         super().__init__(config)
         self.community = config.snmp.get('community') if config.snmp else ""
         self.oid = config.snmp.get('oid') if config.snmp else ""
-        self.sysname = self.get_snmp_str_value("1.3.6.1.2.1.1.5.0")
+        self.sysname = self.get_snmp_value("1.3.6.1.2.1.1.5.0")
         
         self.is_counter = False
         self.prev_value: Optional[int] = None
@@ -908,11 +908,11 @@ class SnmpMonitor(NetworkMonitor):
         
         self.first_check_done = False
 
-    def get_snmp_str_value(self, oid: str) -> Optional[str]:
+    def get_snmp_value(self, oid: str) -> Optional[str]:
         """
         Wrapper around the global get_snmp_str_value function with class-specific parameters.
         """
-        return get_snmp_str_value(
+        return get_snmp_value(
             target=self.config.target,
             community=self.community,
             oid=oid,
@@ -954,7 +954,7 @@ class SnmpMonitor(NetworkMonitor):
         """
         Execute an SNMP check and handle anomaly and threshold detection if enabled.
         """
-        snmp_values = self.get_snmp_values()
+        snmp_values = self.get_snmp_value_with_sysuptime()
         
         if snmp_values is None:
             self.response_values.append({
@@ -1104,10 +1104,9 @@ class SnmpMonitor(NetworkMonitor):
                     current_value if current_value is not None else ''
                 ])
 
-    def get_snmp_values(self) -> Optional[Dict[str, str]]:
+    def get_snmp_value_with_sysuptime(self) -> Optional[Dict[str, str]]:
         """
         Executes the SNMPGET command to retrieve the target OID value and sysUpTime.
-        Returns a dictionary containing 'value_raw' and 'sys_uptime' if successful. Returns None in case of failure.
         """
         try:
             oids = [self.oid, "1.3.6.1.2.1.1.3.0"]
@@ -1331,19 +1330,19 @@ class TrafficMonitor(NetworkMonitor):
         self.community = config.snmp.get('community') if config.snmp else ""
         self.oid = config.snmp.get('oid') if config.snmp else ""
         self.index = self.extract_ifindex()
-        self.ifname = self.get_snmp_str_value(f"1.3.6.1.2.1.31.1.1.1.1.{self.index}") if self.index else None
-        self.sysname = self.get_snmp_str_value("1.3.6.1.2.1.1.5.0") if not hasattr(self, 'sysname') else self.sysname
+        self.ifname = self.get_snmp_value(f"1.3.6.1.2.1.31.1.1.1.1.{self.index}") if self.index else None
+        self.sysname = self.get_snmp_value("1.3.6.1.2.1.1.5.0") if not hasattr(self, 'sysname') else self.sysname
         self.counter_bits = 64 if "traffic64." in self.oid.lower() else 32
         self.anomaly_model_in = None
         self.anomaly_model_out = None
         self.initialize_csv()
         self.skip_first_draw = True
 
-    def get_snmp_str_value(self, oid: str) -> Optional[str]:
+    def get_snmp_value(self, oid: str) -> Optional[str]:
         """
         Wrapper around the global get_snmp_str_value function with class-specific parameters.
         """
-        return get_snmp_str_value(
+        return get_snmp_value(
             target=self.config.target,
             community=self.community,
             oid=oid,
@@ -1409,7 +1408,7 @@ class TrafficMonitor(NetworkMonitor):
         """
         _, in_oid, out_oid = self.get_traffic_oids()
         oids = [in_oid, out_oid, "1.3.6.1.2.1.1.3.0"]
-        snmp_values = self.get_snmp_traffic_values(oids)
+        snmp_values = self.get_snmp_traffic_values_with_sysuptime(oids)
 
         if snmp_values is None:
             Logger.log_error(f"Failed to retrieve SNMP values for {self.config.target}.")
@@ -1563,9 +1562,9 @@ class TrafficMonitor(NetworkMonitor):
 
         return is_anomaly_in, is_anomaly_out
 
-    def get_snmp_traffic_values(self, oids: List[str]) -> Optional[Dict[str, int]]:
+    def get_snmp_traffic_values_with_sysuptime(self, oids: List[str]) -> Optional[Dict[str, int]]:
         """
-        Execute a single SNMPGET command to retrieve multiple OID values.
+        Executes the SNMPGET command to retrieve traffic values and sysUpTime.
         """
         try:
             timeout_option = ["-t", str(self.config.timeout)] if self.config.timeout else []
