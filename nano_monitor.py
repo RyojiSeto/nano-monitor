@@ -240,6 +240,9 @@ def get_snmp_value(target: str, community: str, oid: str, timeout: Optional[floa
             STDERR=result.stderr.strip()
         )
 
+        if "Timeout: No Response" in result.stderr:
+            return None
+
         if result.returncode != 0:
             Logger.log_error(f"Failed to execute snmpget for OID {oid}. Please check SNMP settings for {target}.")
             return None
@@ -1121,6 +1124,9 @@ class SnmpMonitor(NetworkMonitor):
                 STDERR=result.stderr.strip()
             )
 
+            if "Timeout: No Response" in result.stderr:
+                return None
+
             if result.returncode != 0:
                 Logger.log_error(f"Failed to execute snmpget for {self.config.target}.")
                 return None
@@ -1444,7 +1450,6 @@ class TrafficMonitor(NetworkMonitor):
         snmp_values = self.get_snmp_traffic_values_with_sysuptime(oids)
 
         if snmp_values is None:
-            Logger.log_error(f"Failed to retrieve SNMP values for {self.config.target}.")
 
             self.response_values.append({
                 "octets": (None, None),
@@ -1611,6 +1616,9 @@ class TrafficMonitor(NetworkMonitor):
                 STDOUT=result.stdout.strip(),
                 STDERR=result.stderr.strip()
             )
+
+            if "Timeout: No Response" in result.stderr:
+                return None
 
             if result.returncode != 0:
                 Logger.log_error(f"Failed to execute snmpget for {self.config.target}.")
