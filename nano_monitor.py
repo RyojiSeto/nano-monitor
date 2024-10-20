@@ -23,8 +23,7 @@ IS_WINDOWS = platform.system() == "Windows"
 DEFAULT_PING_LOG = "ping_monitor_log.csv"
 DEFAULT_HTTP_LOG = "http_monitor_log.csv"
 DEFAULT_SNMP_LOG = "snmp_monitor_log.csv"
-DEFAULT_TRAFFIC_LOG_32 = "traffic_monitor_log_32bit.csv"
-DEFAULT_TRAFFIC_LOG_64 = "traffic_monitor_log_64bit.csv"
+DEFAULT_TRAFFIC_LOG = "traffic_monitor_log.csv"
 
 # Console color settings
 COLOR_GRAY = "\033[90m"
@@ -910,7 +909,7 @@ class SnmpMonitor(NetworkMonitor):
 
     def get_snmp_value(self, oid: str) -> Optional[str]:
         """
-        Wrapper around the global get_snmp_str_value function with class-specific parameters.
+        Wrapper around the global get_snmp_value function with class-specific parameters.
         """
         return get_snmp_value(
             target=self.config.target,
@@ -1332,15 +1331,45 @@ class TrafficMonitor(NetworkMonitor):
         self.index = self.extract_ifindex()
         self.ifname = self.get_snmp_value(f"1.3.6.1.2.1.31.1.1.1.1.{self.index}") if self.index else None
         self.sysname = self.get_snmp_value("1.3.6.1.2.1.1.5.0") if not hasattr(self, 'sysname') else self.sysname
-        self.counter_bits = 64 if "traffic64." in self.oid.lower() else 32
+        self.counter_bits = self.determine_counter_bits()
         self.anomaly_model_in = None
         self.anomaly_model_out = None
         self.initialize_csv()
         self.skip_first_draw = True
 
+    def determine_counter_bits(self) -> int:
+        """
+        Determine whether 64-bit counters are available by attempting to retrieve ifHCInOctets.
+        """
+        if not self.index:
+            Logger.log_error("ifIndex is not determined.")
+            return 32
+
+        hc_in_oid = OID_IFHC_IN_OCTETS + self.index
+        value = get_snmp_value(
+            target=self.config.target,
+            community=self.community,
+            oid=hc_in_oid,
+            timeout=self.config.timeout,
+            debug_mode=self.config.debug_mode
+        )
+
+        if value is not None:
+            Logger.log_debug_info(
+                debug_mode=self.config.debug_mode,
+                Message=f"64-bit counters are available for ifIndex {self.index}."
+            )
+            return 64
+        else:
+            Logger.log_debug_info(
+                debug_mode=self.config.debug_mode,
+                Message=f"64-bit counters are not available for ifIndex {self.index}. Using 32-bit counters."
+            )
+            return 32
+
     def get_snmp_value(self, oid: str) -> Optional[str]:
         """
-        Wrapper around the global get_snmp_str_value function with class-specific parameters.
+        Wrapper around the global get_snmp_value function with class-specific parameters.
         """
         return get_snmp_value(
             target=self.config.target,
@@ -1352,20 +1381,24 @@ class TrafficMonitor(NetworkMonitor):
     
     def extract_ifindex(self) -> Optional[str]:
         """
-        Extract the ifIndex from the OID or resolve it using ifName.
+        Extract the ifIndex from the OID specified in the format 'traffic.X'.
         """
         try:
             parts = self.oid.split(".")
-            if parts[0].lower().startswith("traffic32") or parts[0].lower().startswith("traffic64"):
-                identifier = parts[1]
-                if identifier.isdigit():
-                    return identifier
-                else:
-                    ifindex = get_ifindex_from_ifname(self.config.target, self.community, identifier)
-                    return ifindex
+            if len(parts) != 2 or parts[0].lower() != "traffic":
+                Logger.log_error(f"Invalid traffic OID format: {self.oid}. Expected format 'traffic.X'.")
+                return None
+            identifier = parts[1]
+            if identifier.isdigit():
+                return identifier
+            else:
+                ifindex = get_ifindex_from_ifname(self.config.target, self.community, identifier)
+                if ifindex is None:
+                    Logger.log_error(f"ifName '{identifier}' not found for target {self.config.target}.")
+                return ifindex
         except IndexError:
-            pass
-        return None
+            Logger.log_error(f"Failed to extract ifIndex from OID: {self.oid}.")
+            return None
 
     def initialize_csv(self):
         """
@@ -1916,37 +1949,42 @@ Options:
         - ping_monitor_log.csv (Ping monitoring)
         - http_monitor_log.csv (HTTP monitoring)
         - snmp_monitor_log.csv (SNMP monitoring)
-        - traffic_monitor_log_32bit.csv (32-bit traffic)
-        - traffic_monitor_log_64bit.csv (64-bit traffic)
+        - traffic_monitor_log.csv (Traffic monitoring)
 
   --snmp <community> <oid>
       Use SNMP for monitoring. Requires Net-SNMP.
-      For traffic monitoring, you can specify either
-      'traffic32.X' or 'traffic64.X' (where X is the ifIndex),
-      or alternatively, specify 'traffic32.ifName' or 'traffic64.ifName'
-      (where ifName is the interface name like 'Gi0/1').
-      Note: traffic64 is recommended over traffic32 for better performance.
-      Note: ifName matching is case-insensitive, and it must match exactly.
-      Note: Xbps calculations are based on 1000, not 1024.
+      For traffic monitoring, you can also specify 'traffic.X'
+      instead of the OID (where X is ifIndex or ifName).
+      Example formats:
+          - traffic.1 (using ifIndex)
+          - traffic.Gi0/1 (using ifName)
+      Note:
+          - ifName matching is case-insensitive
+            and must match exactly.
+          - The script automatically determines
+            whether to use 32-bit or 64-bit counters.
+          - Traffic calculations are based on 1000, not 1024.
             This means 1 Mbps = 1000^2 bits.
-      Note: If the OID value is of counter type,
+          - If the OID value is of counter type,
             it is automatically calculated as per second.
-      Note: SNMP version is fixed at 2c.
+          - SNMP version is fixed at 2c.
 
   --thresh <condition> [<condition> ...]
       Set threshold conditions for monitoring.
       Applicable to Ping, HTTP, SNMP, and Traffic monitors.
       When a threshold breach occurs:
-      - The graph will highlight the breach in red.
-      - A webhook notification will be sent if the --webhook option is enabled.
+          - The graph will highlight the breach in red.
+          - A webhook notification will be sent
+            if the --webhook option is enabled.
       For non-traffic monitors:
           Example: --thresh >=300
       For traffic monitors:
           Example: --thresh in>=1gbps out>=500mbps
           You can specify one or both directions (in/out).
           Units supported: bps, kbps, mbps, gbps (case-insensitive)
-      Note: For traffic monitors, direction and unit are required.
-      Note: If the OID value is a counter type,
+      Note:
+          - For traffic monitors, direction and unit are required.
+          - If the OID value is a counter type,
             the specified threshold values must be per second.
 
   --anomaly <count> <contamination> (default: 256, 0.01)
@@ -1954,8 +1992,9 @@ Options:
       to automatically identify unusual data points.
       Requires scikit-learn.
       When an anomaly is detected:
-      - The graph will highlight the anomaly in red.
-      - A webhook notification will be sent if the --webhook option is enabled.
+          - The graph will highlight the anomaly in red.
+          - A webhook notification will be sent
+            if the --webhook option is enabled.
 
       <count> specifies the minimum number of data points
       needed for anomaly detection (default is 256).
@@ -2001,10 +2040,10 @@ Examples:
   192.168.1.1 --snmp public 1.3.6.1.4.1.2021.11.11.0
 
   # Traffic monitoring on ifIndex.1
-  192.168.1.1 --snmp public traffic64.1
+  192.168.1.1 --snmp public traffic.1
 
   # Traffic monitoring using ifName (e.g., Gi0/1)
-  192.168.1.1 --snmp public traffic64.Gi0/1
+  192.168.1.1 --snmp public traffic.Gi0/1
 
   # Ping monitoring with anomaly detection (256 data points, 0.01 contamination)
   192.168.1.1 --anomaly
@@ -2013,7 +2052,7 @@ Examples:
   192.168.1.1 --thresh >=300
 
   # Traffic monitoring with threshold detection
-  192.168.1.1 --snmp public traffic64.Gi0/1 --thresh in>=1gbps out>=500mbps
+  192.168.1.1 --snmp public traffic.Gi0/1 --thresh in>=1gbps out>=500mbps
 
   # Ping monitoring with failure and webhook notifications (15-minute suppression interval)
   192.168.1.1 --fail --webhook http://example.com/webhook 15
@@ -2054,14 +2093,14 @@ def parse_user_input(user_input: str) -> Optional[MonitorConfig]:
                 return None
             community = options[i + 1]
             oid = options[i + 2]
-            if oid.lower().startswith("traffic32.") or oid.lower().startswith("traffic64."):
+            if oid.lower().startswith("traffic."):
                 identifier = oid.split(".")[1]
                 if not identifier.isdigit():
                     ifindex = get_ifindex_from_ifname(target, community, identifier)
                     if ifindex is None:
                         print(f"\nError: ifName '{identifier}' not found for {target}.")
                         return None
-                    oid = oid.split(".")[0] + "." + ifindex
+                    oid = f"traffic.{ifindex}"
             config.snmp = {'community': community, 'oid': oid}
             i += 3
         elif option == "--thresh":
@@ -2076,7 +2115,7 @@ def parse_user_input(user_input: str) -> Optional[MonitorConfig]:
             if not thresh_args:
                 print("\nError: No conditions specified for --thresh option.")
                 return None
-            if config.snmp and (config.snmp['oid'].lower().startswith("traffic32.") or config.snmp['oid'].lower().startswith("traffic64.")):
+            if config.snmp and config.snmp['oid'].lower().startswith("traffic."):
                 traffic_threshold = TrafficThresholdCondition()
                 for condition in thresh_args:
                     match = re.match(r'(?i)(in|out)(>=|<=|>|<|==)(\d+)(bps|kbps|mbps|gbps)', condition)
@@ -2161,8 +2200,8 @@ def parse_user_input(user_input: str) -> Optional[MonitorConfig]:
                 config.log_filename = options[i + 1]
                 i += 2
             else:
-                if config.snmp and (config.snmp['oid'].lower().startswith("traffic64.") or config.snmp['oid'].lower().startswith("traffic32.")):
-                    config.log_filename = DEFAULT_TRAFFIC_LOG_64 if "traffic64." in config.snmp['oid'].lower() else DEFAULT_TRAFFIC_LOG_32
+                if config.snmp and config.snmp['oid'].lower().startswith("traffic."):
+                    config.log_filename = DEFAULT_TRAFFIC_LOG
                 elif config.snmp:
                     config.log_filename = DEFAULT_SNMP_LOG
                 elif is_valid_url(target):
@@ -2220,6 +2259,12 @@ def parse_user_input(user_input: str) -> Optional[MonitorConfig]:
         elif option == "--fail":
             config.fail_notify = True
             i += 1
+        elif option.lower().startswith("traffic."):
+            if config.snmp and config.snmp['oid'].lower().startswith("traffic."):
+                i += 1
+            else:
+                print("\nError: 'traffic.X' should be used with --snmp option.")
+                return None
         else:
             print(f"\nError: Invalid option found: {option}")
             return None
@@ -2235,7 +2280,7 @@ def create_monitor(config: MonitorConfig) -> Optional[NetworkMonitor]:
     if is_valid_url(config.target):
         return HttpMonitor(config)
     elif config.snmp:
-        if config.snmp['oid'].lower().startswith(("traffic32.", "traffic64.")):
+        if config.snmp['oid'].lower().startswith("traffic."):
             return TrafficMonitor(config)
         else:
             return SnmpMonitor(config)
