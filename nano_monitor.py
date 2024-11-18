@@ -2042,7 +2042,7 @@ Examples:
   192.168.1.1
 
   # Simple HTTP monitoring (GET request)
-  http://example.com
+  https://example.com
 
   # SNMP monitoring of a specific OID
   192.168.1.1 --snmp public 1.3.6.1.4.1.2021.11.11.0
@@ -2063,7 +2063,10 @@ Examples:
   192.168.1.1 --snmp public traffic.Gi0/1 --thresh in>=1gbps out>=500mbps
 
   # Ping monitoring with failure and webhook notifications (15-minute suppression interval)
-  192.168.1.1 --fail --webhook http://example.com/webhook 15
+  192.168.1.1 --fail --webhook https://example.com/webhook 15
+
+  # Ping monitoring with logging (default filename)
+  192.168.1.1 --log
     """
     print(help_message)
 
