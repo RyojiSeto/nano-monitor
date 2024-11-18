@@ -1,6 +1,6 @@
 # Nano Monitor
 
-<img src="./images/Sample.png" style="border-radius: 15px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);">
+<img src="./images/Sample.png" style="border-radius: 15px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); width: 100%;">
 
 Nano Monitor is a simple and lightweight network monitoring tool built with Python.
 
@@ -20,11 +20,11 @@ Nano Monitor is a simple and lightweight network monitoring tool built with Pyth
 
 1. Click on "Releases" on the right-hand side of the screen.
 
-<img src="./images/Releases.png" style="border-radius: 15px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);">
+<img src="./images/Releases.png" style="border-radius: 15px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); width: 100%;">
 
 2. Download the "nano_monitor.py"
 
-<img src="./images/nano_monitor.png" style="border-radius: 15px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);">
+<img src="./images/nano_monitor.png" style="border-radius: 15px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); width: 100%;">
 
 3. Place `nano_monitor.py` in any directory.
 
