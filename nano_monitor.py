@@ -210,6 +210,19 @@ def send_webhook_notification(webhook_url: str, message: str, notification_type:
         Logger.log_error(f"Failed to send webhook notification: {e}")
 
 
+def check_curl_command() -> bool:
+    """
+    Verify if the 'curl' command is available in the system.
+    """
+    try:
+        command = ["where", "curl"] if IS_WINDOWS else ["which", "curl"]
+        result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        if result.returncode != 0:
+            raise FileNotFoundError
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return False
+    return True
+
 def check_snmp_command() -> bool:
     """
     Verify if the 'snmpget' command is available in the system.
@@ -2067,6 +2080,9 @@ Examples:
 
   # Ping monitoring with logging (default filename)
   192.168.1.1 --log
+
+  # Ping monitoring with debugging
+  192.168.1.1 --debug
     """
     print(help_message)
 
@@ -2317,9 +2333,15 @@ def main():
             if monitor is None:
                 continue
 
-            if not check_snmp_command() and config.snmp:
-                print("\nError: 'snmpget' command is not available. Please install Net-SNMP.")
-                continue
+            if isinstance(monitor, HttpMonitor):
+                if not check_curl_command():
+                    print("\nError: 'curl' command is not available. Please install cURL.")
+                    continue
+
+            if config.snmp:
+                if not check_snmp_command():
+                    print("\nError: 'snmpget' command is not available. Please install Net-SNMP.")
+                    continue
 
             monitor.monitor()
             break
