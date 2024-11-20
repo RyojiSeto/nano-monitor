@@ -18,24 +18,41 @@ Nano Monitor is a simple and lightweight network monitoring tool built with Pyth
 
 ## Installation
 
+Before using Nano Monitor, ensure you have Python 3.7 or higher installed.  
+For installation instructions, visit the [official Python website](https://www.python.org/downloads/).
+
 1. Click on "Releases" on the right-hand side of the screen.
 
-<img src="./images/Releases.png" style="width: 40%;">
+<img src="./images/Releases.png" style="width: 30%;">
 
 2. Download the "nano_monitor.py"
 
-<img src="./images/nano_monitor.png" style="width: 40%;">
+<img src="./images/nano_monitor.png" style="width: 30%;">
 
 3. Place `nano_monitor.py` in any directory.
 
-    ### To use the Anomaly Alerts feature:
-    Install the machine learning library `scikit-learn`:
+    ### To use the Anomaly Detection feature:
+    Install the machine learning library `scikit-learn`, if it is not already installed:
     ```
     pip install scikit-learn
     ```
 
+    ### To use the HTTP Monitoring features:
+    Install `cURL`, if it is not already installed.
+
+    For Ubuntu or other Debian-based systems:
+    ```
+    sudo apt install curl
+    ```
+    For CentOS or other RedHat-based systems:
+    ```
+    sudo yum install curl
+    ```
+    For Windows:<br>
+    [https://curl.se/](https://curl.se/)
+
     ### To use the SNMP Monitoring or Traffic Monitoring features:
-    Install Net-SNMP.
+    Install `Net-SNMP`, if it is not already installed.
 
     For Ubuntu or other Debian-based systems:
     ```
@@ -100,8 +117,28 @@ Nano Monitor is a simple and lightweight network monitoring tool built with Pyth
 - Ping monitoring with logging (default filename)  
 `192.168.1.1 --log`
 
+- Ping monitoring with debugging  
+`192.168.1.1 --debug`
+
 ## Details of Each Option
 
 Enter any of the following commands to view the help:
 
 `-h`, `--help`, `?`
+
+## Tested Environments
+
+- Python 3.13.0
+- Operating Systems:
+  - Windows 11
+  - Ubuntu 24.04.1
+
+## License
+
+This project is licensed under the MIT License.  
+See the [LICENSE](./LICENSE) file for details.
+
+## Contributing to Nano Monitor
+
+We welcome contributions to improve Nano Monitor!  
+Whether it's bug fixes, new features, or documentation updates, your help is greatly appreciated.
