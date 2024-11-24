@@ -23,11 +23,11 @@ For installation instructions, visit the [official Python website](https://www.p
 
 1. Click on "Releases" on the right-hand side of the screen.
 
-<img src="./images/Releases.png" style="width: 30%;">
+   <img src="./images/Releases.png" style="width: 30%;">
 
 2. Download the "nano_monitor.py"
 
-<img src="./images/nano_monitor.png" style="width: 30%;">
+   <img src="./images/nano_monitor.png" style="width: 30%;">
 
 3. Place `nano_monitor.py` in any directory.
 
@@ -131,7 +131,7 @@ Enter any of the following commands to view the help:
 - Python 3.13.0
 - Operating Systems:
   - Windows 11
-  - Ubuntu 24.04.1
+  - Ubuntu 24.04.1 (WSL2)
 
 ## License
 
