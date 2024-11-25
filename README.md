@@ -85,6 +85,8 @@ For installation instructions, visit the [official Python website](https://www.p
 
    `Enter the host or URL to monitor:`
 
+4. To exit the tool at any time, press `Ctrl + C` in the command line.
+
 ## Usage Example
 
 - Simple Ping monitoring  
