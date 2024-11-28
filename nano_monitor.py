@@ -27,7 +27,6 @@ DEFAULT_TRAFFIC_LOG = "traffic_monitor_log.csv"
 
 # Console color settings
 COLOR_GRAY = "\033[90m"
-COLOR_WHITE = "\033[97m"
 COLOR_RED = "\033[91m"
 COLOR_RESET = "\033[0m"
 
@@ -638,7 +637,7 @@ class PingMonitor(NetworkMonitor):
             print("\033[H\033[J", end="")
 
         output = []
-        output.append(f"\n{COLOR_GRAY}Monitoring:{COLOR_RESET} {COLOR_WHITE}{self.config.target}{COLOR_RESET}")
+        output.append(f"\n{COLOR_GRAY}Monitoring:{COLOR_RESET} {self.config.target}")
         output.append(f"{COLOR_GRAY}Ping Response Time Graph (ms):{COLOR_RESET}")
         output.append(self.build_graph())
         output.append(self.build_statistics())
@@ -647,7 +646,7 @@ class PingMonitor(NetworkMonitor):
             valid_data_count = len([v for v in self.response_values if v["anomaly_value"] is not None])
             if self.anomaly_model is None and valid_data_count < self.config.min_data_count:
                 remaining = self.config.min_data_count - valid_data_count
-                output.append(f"{COLOR_GRAY}Currently Training... Remaining data points needed: {COLOR_WHITE}{remaining}{COLOR_GRAY}.{COLOR_RESET}\n")
+                output.append(f"{COLOR_GRAY}Currently Training... Remaining data points needed:{COLOR_RESET} {remaining}{COLOR_GRAY}.{COLOR_RESET}\n")
             elif self.anomaly_model is not None:
                 output.append(f"{COLOR_GRAY}Training completed. Anomaly detection is active.{COLOR_RESET}\n")
 
@@ -708,18 +707,18 @@ class PingMonitor(NetworkMonitor):
             failure_color = COLOR_RED
             fail_rate_color = COLOR_RED
         else:
-            failure_color = COLOR_WHITE
-            fail_rate_color = COLOR_WHITE
+            failure_color = ""
+            fail_rate_color = ""
 
         stats = [
             f"{COLOR_GRAY}Statistics:{COLOR_RESET}",
-            f"{COLOR_GRAY}Total:{COLOR_RESET} {COLOR_WHITE}{total}{COLOR_RESET}, "
-            f"{COLOR_GRAY}Success:{COLOR_RESET} {COLOR_WHITE}{success}{COLOR_RESET}, "
+            f"{COLOR_GRAY}Total:{COLOR_RESET} {total}, "
+            f"{COLOR_GRAY}Success:{COLOR_RESET} {success}, "
             f"{COLOR_GRAY}Failure:{COLOR_RESET} {failure_color}{failure}{COLOR_RESET}, "
             f"{COLOR_GRAY}Failure Rate:{COLOR_RESET} {fail_rate_color}{fail_rate:.2f}%{COLOR_RESET}",
-            f"{COLOR_GRAY}Min Time:{COLOR_RESET} {COLOR_WHITE}{min_time}{COLOR_RESET} ms, "
-            f"{COLOR_GRAY}Max Time:{COLOR_RESET} {COLOR_WHITE}{max_time}{COLOR_RESET} ms, "
-            f"{COLOR_GRAY}Cur Time:{COLOR_RESET} {COLOR_WHITE}{cur_time}{COLOR_RESET} ms\n"
+            f"{COLOR_GRAY}Min Time:{COLOR_RESET} {min_time} ms, "
+            f"{COLOR_GRAY}Max Time:{COLOR_RESET} {max_time} ms, "
+            f"{COLOR_GRAY}Cur Time:{COLOR_RESET} {cur_time} ms\n"
         ]
 
         return "\n".join(stats)
@@ -845,7 +844,7 @@ class HttpMonitor(NetworkMonitor):
             print("\033[H\033[J", end="")
 
         output = []
-        output.append(f"\n{COLOR_GRAY}Monitoring:{COLOR_RESET} {COLOR_WHITE}{self.config.target}{COLOR_RESET}")
+        output.append(f"\n{COLOR_GRAY}Monitoring:{COLOR_RESET} {self.config.target}")
         output.append(f"{COLOR_GRAY}HTTP Response Time Graph (ms):{COLOR_RESET}")
         output.append(self.build_graph())
         output.append(self.build_statistics())
@@ -854,7 +853,7 @@ class HttpMonitor(NetworkMonitor):
             valid_data_count = len([v for v in self.response_values if v["anomaly_value"] is not None])
             if self.anomaly_model is None and valid_data_count < self.config.min_data_count:
                 remaining = self.config.min_data_count - valid_data_count
-                output.append(f"{COLOR_GRAY}Currently Training... Remaining data points needed: {COLOR_WHITE}{remaining}{COLOR_GRAY}.{COLOR_RESET}\n")
+                output.append(f"{COLOR_GRAY}Currently Training... Remaining data points needed:{COLOR_RESET} {remaining}{COLOR_GRAY}.{COLOR_RESET}\n")
             elif self.anomaly_model is not None:
                 output.append(f"{COLOR_GRAY}Training completed. Anomaly detection is active.{COLOR_RESET}\n")
 
@@ -915,18 +914,18 @@ class HttpMonitor(NetworkMonitor):
             failure_color = COLOR_RED
             fail_rate_color = COLOR_RED
         else:
-            failure_color = COLOR_WHITE
-            fail_rate_color = COLOR_WHITE
+            failure_color = ""
+            fail_rate_color = ""
 
         stats = [
             f"{COLOR_GRAY}Statistics:{COLOR_RESET}",
-            f"{COLOR_GRAY}Total:{COLOR_RESET} {COLOR_WHITE}{total}{COLOR_RESET}, "
-            f"{COLOR_GRAY}Success:{COLOR_RESET} {COLOR_WHITE}{success}{COLOR_RESET}, "
+            f"{COLOR_GRAY}Total:{COLOR_RESET} {total}, "
+            f"{COLOR_GRAY}Success:{COLOR_RESET} {success}, "
             f"{COLOR_GRAY}Failure:{COLOR_RESET} {failure_color}{failure}{COLOR_RESET}, "
             f"{COLOR_GRAY}Failure Rate:{COLOR_RESET} {fail_rate_color}{fail_rate:.2f}%{COLOR_RESET}",
-            f"{COLOR_GRAY}Min Time:{COLOR_RESET} {COLOR_WHITE}{min_time}{COLOR_RESET} ms, "
-            f"{COLOR_GRAY}Max Time:{COLOR_RESET} {COLOR_WHITE}{max_time}{COLOR_RESET} ms, "
-            f"{COLOR_GRAY}Cur Time:{COLOR_RESET} {COLOR_WHITE}{cur_time}{COLOR_RESET} ms\n"
+            f"{COLOR_GRAY}Min Time:{COLOR_RESET} {min_time} ms, "
+            f"{COLOR_GRAY}Max Time:{COLOR_RESET} {max_time} ms, "
+            f"{COLOR_GRAY}Cur Time:{COLOR_RESET} {cur_time} ms\n"
         ]
 
         return "\n".join(stats)
@@ -1262,12 +1261,12 @@ class SnmpMonitor(NetworkMonitor):
 
         display_target = f"{self.config.target} ({self.sysname})" if self.sysname else self.config.target
         output = []
-        output.append(f"\n{COLOR_GRAY}Monitoring:{COLOR_RESET} {COLOR_WHITE}{display_target}{COLOR_RESET}")
+        output.append(f"\n{COLOR_GRAY}Monitoring:{COLOR_RESET} {display_target}")
         
         if self.is_counter:
-            graph_title = f"{COLOR_GRAY}OID:{COLOR_RESET} {COLOR_WHITE}{self.oid}{COLOR_RESET}{COLOR_GRAY} / sec Graph:{COLOR_RESET}"
+            graph_title = f"{COLOR_GRAY}OID:{COLOR_RESET} {self.oid} {COLOR_GRAY}/ sec Graph:{COLOR_RESET}"
         else:
-            graph_title = f"{COLOR_GRAY}OID:{COLOR_RESET} {COLOR_WHITE}{self.oid}{COLOR_RESET}{COLOR_GRAY} Graph:{COLOR_RESET}"
+            graph_title = f"{COLOR_GRAY}OID:{COLOR_RESET} {self.oid} {COLOR_GRAY}Graph:{COLOR_RESET}"
         
         output.append(graph_title)
         output.append(self.build_graph())
@@ -1277,7 +1276,7 @@ class SnmpMonitor(NetworkMonitor):
             valid_data_count = len([v for v in self.response_values if v["value"] is not None])
             if self.anomaly_model is None and valid_data_count < self.config.min_data_count:
                 remaining = self.config.min_data_count - valid_data_count
-                output.append(f"{COLOR_GRAY}Currently Training... Remaining data points needed: {COLOR_WHITE}{remaining}{COLOR_GRAY}.{COLOR_RESET}\n")
+                output.append(f"{COLOR_GRAY}Currently Training... Remaining data points needed:{COLOR_RESET} {remaining}{COLOR_GRAY}.{COLOR_RESET}\n")
             elif self.anomaly_model is not None:
                 output.append(f"{COLOR_GRAY}Training completed. Anomaly detection is active.{COLOR_RESET}\n")
 
@@ -1360,18 +1359,18 @@ class SnmpMonitor(NetworkMonitor):
             failure_color = COLOR_RED
             fail_rate_color = COLOR_RED
         else:
-            failure_color = COLOR_WHITE
-            fail_rate_color = COLOR_WHITE
+            failure_color = ""
+            fail_rate_color = ""
 
         stats = [
             f"{COLOR_GRAY}Statistics:{COLOR_RESET}",
-            f"{COLOR_GRAY}Total:{COLOR_RESET} {COLOR_WHITE}{total}{COLOR_RESET}, "
-            f"{COLOR_GRAY}Success:{COLOR_RESET} {COLOR_WHITE}{success}{COLOR_RESET}, "
+            f"{COLOR_GRAY}Total:{COLOR_RESET} {total}, "
+            f"{COLOR_GRAY}Success:{COLOR_RESET} {success}, "
             f"{COLOR_GRAY}Failure:{COLOR_RESET} {failure_color}{failure}{COLOR_RESET}, "
             f"{COLOR_GRAY}Failure Rate:{COLOR_RESET} {fail_rate_color}{fail_rate:.2f}%{COLOR_RESET}",
-            f"{COLOR_GRAY}Min Value:{COLOR_RESET} {COLOR_WHITE}{min_str:.2f}{COLOR_RESET} {min_unit}, "
-            f"{COLOR_GRAY}Max Value:{COLOR_RESET} {COLOR_WHITE}{max_str:.2f}{COLOR_RESET} {max_unit}, "
-            f"{COLOR_GRAY}Cur Value:{COLOR_RESET} {COLOR_WHITE}{cur_str:.2f}{COLOR_RESET} {cur_unit}\n"
+            f"{COLOR_GRAY}Min Value:{COLOR_RESET} {min_str:.2f} {min_unit}, "
+            f"{COLOR_GRAY}Max Value:{COLOR_RESET} {max_str:.2f} {max_unit}, "
+            f"{COLOR_GRAY}Cur Value:{COLOR_RESET} {cur_str:.2f} {cur_unit}\n"
         ]
 
         return "\n".join(stats)
@@ -1856,16 +1855,16 @@ class TrafficMonitor(NetworkMonitor):
             display_target = f"{self.config.target} ({self.sysname})"
         else:
             display_target = self.config.target
-        output.append(f"\n{COLOR_GRAY}Monitoring:{COLOR_RESET} {COLOR_WHITE}{display_target}{COLOR_RESET}")
+        output.append(f"\n{COLOR_GRAY}Monitoring:{COLOR_RESET} {display_target}")
         index = self.index
         max_in_value_mbps = max([v["mbps"][0] for v in self.response_values[-MAX_GRAPH_LENGTH:] if v["mbps"][0] is not None], default=0)
         max_out_value_mbps = max([v["mbps"][1] for v in self.response_values[-MAX_GRAPH_LENGTH:] if v["mbps"][1] is not None], default=0)
         max_value_mbps = max(max_in_value_mbps, max_out_value_mbps)
         value_converted, unit = convert_traffic_unit(max_value_mbps)
         if self.ifname and isinstance(self.ifname, str):
-            output.append(f"{COLOR_WHITE}{self.ifname}{COLOR_RESET}{COLOR_GRAY} Traffic Graph ({COLOR_WHITE}{unit}{COLOR_RESET}{COLOR_GRAY}, * = In, # = Out):{COLOR_RESET}")
+            output.append(f"{self.ifname} {COLOR_GRAY}Traffic Graph ({COLOR_RESET}{unit}{COLOR_GRAY}, * = In, # = Out):{COLOR_RESET}")
         else:
-            output.append(f"{COLOR_GRAY}ifIndex.{COLOR_WHITE}{index}{COLOR_GRAY} Traffic Graph ({COLOR_WHITE}{unit}{COLOR_RESET}{COLOR_GRAY}, * = In, # = Out):{COLOR_RESET}")
+            output.append(f"{COLOR_GRAY}ifIndex.{COLOR_RESET}{index} {COLOR_GRAY}Traffic Graph ({COLOR_RESET}{unit}{COLOR_GRAY}, * = In, # = Out):{COLOR_RESET}")
         output.append(self.build_traffic_graph(unit))
         output.append(self.build_traffic_statistics())
         if self.config.anomaly_mode:
@@ -1874,7 +1873,7 @@ class TrafficMonitor(NetworkMonitor):
             if self.anomaly_model_in is None or self.anomaly_model_out is None:
                 remaining_data_points = max(0, self.config.min_data_count - min(valid_in_data, valid_out_data))
                 if remaining_data_points > 0:
-                    output.append(f"{COLOR_GRAY}Currently Training... Remaining data points needed: {COLOR_WHITE}{remaining_data_points}{COLOR_GRAY}.{COLOR_RESET}\n")
+                    output.append(f"{COLOR_GRAY}Currently Training... Remaining data points needed:{COLOR_RESET} {remaining_data_points}{COLOR_GRAY}.{COLOR_RESET}\n")
             else:
                 output.append(f"{COLOR_GRAY}Training completed. Anomaly detection is active.{COLOR_RESET}\n")
         print("\n".join(output))
@@ -1978,12 +1977,12 @@ class TrafficMonitor(NetworkMonitor):
 
         stats_lines = []
         stats_lines.append(f"{COLOR_GRAY}Statistics:{COLOR_RESET}")
-        stats_lines.append(f"{COLOR_GRAY}In  Min:{COLOR_RESET}{COLOR_WHITE}{in_min:>6}{COLOR_RESET} {in_min_unit}, "
-                           f"{COLOR_GRAY}In  Max:{COLOR_RESET}{COLOR_WHITE}{in_max:>6}{COLOR_RESET} {in_max_unit}, "
-                           f"{COLOR_GRAY}In  Cur:{COLOR_RESET}{COLOR_WHITE}{in_cur_str:>6}{COLOR_RESET} {in_cur_unit}")
-        stats_lines.append(f"{COLOR_GRAY}Out Min:{COLOR_RESET}{COLOR_WHITE}{out_min:>6}{COLOR_RESET} {out_min_unit}, "
-                           f"{COLOR_GRAY}Out Max:{COLOR_RESET}{COLOR_WHITE}{out_max:>6}{COLOR_RESET} {out_max_unit}, "
-                           f"{COLOR_GRAY}Out Cur:{COLOR_RESET}{COLOR_WHITE}{out_cur_str:>6}{COLOR_RESET} {out_cur_unit}\n")
+        stats_lines.append(f"{COLOR_GRAY}In  Min:{COLOR_RESET}{in_min:>6} {in_min_unit}, "
+                           f"{COLOR_GRAY}In  Max:{COLOR_RESET}{in_max:>6} {in_max_unit}, "
+                           f"{COLOR_GRAY}In  Cur:{COLOR_RESET}{in_cur_str:>6} {in_cur_unit}")
+        stats_lines.append(f"{COLOR_GRAY}Out Min:{COLOR_RESET}{out_min:>6} {out_min_unit}, "
+                           f"{COLOR_GRAY}Out Max:{COLOR_RESET}{out_max:>6} {out_max_unit}, "
+                           f"{COLOR_GRAY}Out Cur:{COLOR_RESET}{out_cur_str:>6} {out_cur_unit}\n")
         return "\n".join(stats_lines)
 
 def display_help():
