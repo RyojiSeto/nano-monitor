@@ -32,13 +32,18 @@ For installation instructions, visit the [official Python website](https://www.p
 3. Place `nano_monitor.py` in any directory.
 
     ### To use the Anomaly Detection feature:
-    Install the machine learning library `scikit-learn`, if it is not already installed:
+    Install the machine learning library `scikit-learn`:
+
+    (Note: The tool can still function without `scikit-learn`, but related features will not be available.)
+
     ```
     pip install scikit-learn
     ```
 
     ### To use the HTTP Monitoring features:
-    Install `cURL`, if it is not already installed.
+    Install `cURL`.
+
+   (Note: The tool can still function without `cURL`, but related features will not be available.)
 
     For Ubuntu or other Debian-based systems:
     ```
@@ -52,7 +57,9 @@ For installation instructions, visit the [official Python website](https://www.p
     [https://curl.se/](https://curl.se/)
 
     ### To use the SNMP Monitoring or Traffic Monitoring features:
-    Install `Net-SNMP`, if it is not already installed.
+    Install `Net-SNMP`.
+
+    (Note: The tool can still function without `Net-SNMP`, but related features will not be available.)
 
     For Ubuntu or other Debian-based systems:
     ```
