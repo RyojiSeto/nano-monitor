@@ -41,7 +41,7 @@ For installation instructions, visit the [official Python website](https://www.p
     ```
 
     ### To use the HTTP Monitoring features:
-    Install `cURL`. However, since cURL is pre-installed on many operating systems, please check first by running the command `curl --version`.
+    Install `cURL`. However, since `cURL` is pre-installed on many operating systems, please check first by running the command `curl --version`.
 
    (Note: The tool can still function without `cURL`, but related features will not be available.)
 
