@@ -618,7 +618,7 @@ class PingMonitor(NetworkMonitor):
             STDERR=result.stderr.strip()
         )
 
-        match = re.search(r"(?:time=|time<|時間\s*=\s*|時間\s*<\s*)(\d+)", result.stdout)
+        match = re.search(r"(\d+)\s*ms", result.stdout)
         if match:
             try:
                 return int(match.group(1))
