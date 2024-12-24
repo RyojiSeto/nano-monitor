@@ -618,10 +618,11 @@ class PingMonitor(NetworkMonitor):
             STDERR=result.stderr.strip()
         )
 
-        match = re.search(r"(\d+)\s*ms", result.stdout)
+        regex = r"(\d+(\.\d+)?)\s*ms"
+        match = re.search(regex, result.stdout)
         if match:
             try:
-                return int(match.group(1))
+                return int(round(float(match.group(1))))
             except ValueError:
                 return None
         return None
